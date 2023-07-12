@@ -20,8 +20,24 @@ static DayOfWeek[] daysOfWeek = DayOfWeek.values();
 		
 
 	}
+	private static void setFirstDay(DayOfWeek dayOfWeek) {
+		DayOfWeek[] sourceDays = DayOfWeek.values();
+		if (dayOfWeek != daysOfWeek[0]) {
+			{
+				int dayNumber = dayOfWeek.getValue();
+				for (int i = 0; i < daysOfWeek.length; i++) {
+					int ind = dayNumber <= daysOfWeek.length ?
+							dayNumber : dayNumber - daysOfWeek.length;
+					daysOfWeek[i] = sourceDays[ind - 1];
+					dayNumber++;
+				}
+			}
+		}
+
+	}
 
 	private static void printCalendar(RecordArguments recordArguments) {
+		setFirstDay(recordArguments.firstWeekDay());
 		printTitle(recordArguments.month(), recordArguments.year());
 		printWeekDays();
 		printDays(recordArguments.month(), recordArguments.year());
@@ -50,9 +66,12 @@ static DayOfWeek[] daysOfWeek = DayOfWeek.values();
 	}
 
 	private static int getFirstWeekDay(int month, int year) {
-		int weekDayNumber = LocalDate.of(year, month, 1)
-				.get(ChronoField.DAY_OF_WEEK);
-		return weekDayNumber - 1;
+		LocalDate firstDateMonth = LocalDate.of(year, month, 1);
+		int firstWeekDay = firstDateMonth.getDayOfWeek().getValue();
+		int firstValue = daysOfWeek[0].getValue();
+		int delta = firstWeekDay - firstValue;
+
+		return delta >= 0 ? delta : delta + daysOfWeek.length;
 	}
 
 	private static int getNumberOfDays(int month, int year) {
@@ -84,9 +103,19 @@ static DayOfWeek[] daysOfWeek = DayOfWeek.values();
 			getMonth(args[0]);
 		int year = args.length > 1 ? getYear(args[1]) :
 			ld.get(ChronoField.YEAR);
-		return new RecordArguments(month, year, null);
+		DayOfWeek firstDayOfWeek = args.length > 2 ? getFirstDayOfWeek(args[2]) :
+			DayOfWeek.MONDAY;
+		return new RecordArguments(month, year, firstDayOfWeek);
 	}
 
+	private static DayOfWeek getFirstDayOfWeek(String firstDayStr) throws Exception {
+		try {
+			DayOfWeek res = DayOfWeek.valueOf(firstDayStr.toUpperCase());
+			return res;
+		} catch (Exception e) {
+			throw new Exception(firstDayStr.toUpperCase() + " wrong day of week");
+		}
+	}
 	private static int getYear(String yearStr) throws Exception {
 		String message = "";
 		int year = 0;
